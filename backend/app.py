@@ -1,75 +1,31 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-from backend.rag import answer_query
+import os
+from flask import Flask, jsonify, request
+from flask_cors import CORS  # Add this import
+from backend.rag import answer_query  # Fix import
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+CORS(app)  # Enable CORS for frontend communication
 
-@app.route("/api/ask", methods=["GET", "POST"])
-def ask():
-    print("📥 Received request to /api/ask")
-    print(f"📥 Method: {request.method}")
-    
-    # Handle both GET and POST
-    if request.method == "GET":
-        question = request.args.get("question", "") or request.args.get("q", "")
-        print(f"📥 GET question: {question}")
-    else:
-        data = request.get_json()
-        print(f"📥 POST data: {data}")
-        question = data.get("question", "") if data else ""
-    
-    if not question:
-        return jsonify({"error": "Missing question", "success": False}), 400
-
-    try:
-        print(f"🤔 Processing question: {question}")
-        answer = answer_query(question)
-        print(f"✅ Answer generated: {answer[:100]}...")
-        
-        return jsonify({
-            "question": question, 
-            "answer": answer,
-            "success": True
-        })
-    except Exception as e:
-        print(f"❌ Error: {e}")
-        return jsonify({
-            "error": str(e),
-            "success": False
-        }), 500
-
-@app.route("/api/courses", methods=["GET"])
-def get_courses():
-    courses = [
-        {
-            "id": "flask",
-            "name": "Flask Documentation",
-            "description": "Learn Flask web framework",
-            "status": "active"
-        }
-    ]
-    return jsonify(courses)
-
-@app.route("/health", methods=["GET"])
-def health():
-    return jsonify({"status": "ok", "message": "Backend is running!"})
-
-@app.route("/", methods=["GET"])
+@app.route('/')
 def home():
-    return jsonify({
-        "message": "LearnBot Academy Backend API",
-        "endpoints": {
-            "health": "/health",
-            "courses": "/api/courses", 
-            "ask": "/api/ask"
-        }
-    })
+    return jsonify({"message": "Flask API is running"})
 
-if __name__ == "__main__":
-    print("🚀 Starting Flask server on http://127.0.0.1:8000")
-    print("📋 Available endpoints:")
-    print("   - GET  /health")
-    print("   - GET  /api/courses") 
-    print("   - GET/POST /api/ask")
-    app.run(debug=True, port=8000, host='127.0.0.1')
+@app.route('/api/answer', methods=['POST'])
+def get_answer():
+    try:
+        data = request.get_json()
+        question = data.get('question', '')
+        
+        if not question:
+            return jsonify({"error": "Question is required"}), 400
+            
+        answer = answer_query(question)
+        return jsonify({"answer": answer})
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Production configuration
+if __name__ == '__main__':
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port, debug=False)
