@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from rag import answer_query
+from backend.rag import answer_query
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
