@@ -65,7 +65,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # Backend configuration
-BACKEND_URL = "http://127.0.0.1:8000"
+BACKEND_URL = "https://nanobot-p8y1.onrender.com"
 
 # Initialize session state
 if 'page' not in st.session_state:
